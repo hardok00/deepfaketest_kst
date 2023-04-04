@@ -10,7 +10,7 @@ from models.model import FaceSwap, l2_norm
 from models.arcface import IRBlock, ResNet
 from utils.align_face import back_matrix, dealign, align_img
 from utils.util import paddle2cv, cv2paddle
-from utils.prepare_data import LandmarkModel
+from utils.prepare_data_json_verify import LandmarkModel
 import json
 
 def draw_text(img, text,
@@ -34,12 +34,24 @@ def image_test_multi_face(args, landmarkModel):
     if os.path.isfile(args.json_path):
         with open(args.json_path, 'rt', encoding='UTF-8') as annotations:
             coco = json.load(annotations)
+    else:
+        print("********************* JSON FILE NOT DETECT *****************************")
+        return None
     
     if os.path.isfile(args.target_img_path):
         img_list = [args.target_img_path]
     else:
         img_list = [os.path.join(args.target_img_path, x) for x in os.listdir(args.target_img_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
     img_list.sort()
+    
+    verify_landmark =[]
+    verify_list = [os.path.join(args.verify_img_path, x) for x in os.listdir(args.verify_img_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
+    print(verify_list)
+    for path in verify_list:
+        verify_img = cv2.imread(path)
+        landmark = landmarkModel.get(verify_img)
+        
+        verify_landmark.append(landmark)
     
     for idx, path in enumerate(img_list):
         start_idx = path.rfind('/')
@@ -58,7 +70,7 @@ def image_test_multi_face(args, landmarkModel):
                 # print(image_box)
                 cropped_image = origin_att_img[image_box[1]:image_box[1]+image_box[3], image_box[0]:image_box[0]+image_box[2]]
                 
-                bbox, landmarks = landmarkModel.gets(cropped_image)
+                bbox, landmarks = landmarkModel.gets(cropped_image,verify_landmark,verify_list)
                 # print(f"crop bbox : {bbox}" )
                 
                 for j in bbox:

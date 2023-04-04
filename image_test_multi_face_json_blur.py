@@ -49,29 +49,23 @@ def image_test_multi_face(args, landmarkModel):
             target_name = args.target_img_path
 
         origin_att_img = cv2.imread(path)
-        h,w,_ =  origin_att_img.shape
         bboxes = []
 
         for image_id in coco['annotations']:
             if image_id["image_id"] == idx + 1 and image_id["category_id"] == 2:
                 image_box = image_id["bbox"]
                 image_box = list(map(int, image_box))
-                print(image_box)
+                # print(image_box)
                 cropped_image = origin_att_img[image_box[1]:image_box[1]+image_box[3], image_box[0]:image_box[0]+image_box[2]]
                 
                 bbox, landmarks = landmarkModel.gets(cropped_image)
-                print(f"crop bbox : {bbox}" )
-                bbox1, landmarks = landmarkModel.gets(origin_att_img)
+                # print(f"crop bbox : {bbox}" )
                 
                 for j in bbox:
                     j = list(map(int, j))
                     del j[4]
                     # print(j)
                     bboxes.append([image_box[0]+j[0],image_box[1]+j[1],image_box[0]+j[2],image_box[1]+j[3]])
-                print(bboxes)
-                    
-                print(f"image bbox : {bbox1}" )
-                    
                 # print(bboxes)
                 # cv2.imwrite(os.path.join(args.output_dir, os.path.basename(target_name)), cropped_image)
         
@@ -87,6 +81,7 @@ def image_test_multi_face(args, landmarkModel):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="MobileFaceSwap Test")
+    parser.add_argument('--verify_img_path', type=str, help='path to the verify image')
     parser.add_argument('--target_img_path', type=str, help='path to the target images')
     parser.add_argument('--json_path', type=str, help='path to the json')
     parser.add_argument('--output_dir', type=str, default='results', help='path to the output dirs')
@@ -100,7 +95,6 @@ if __name__ == '__main__':
     if args.need_align:
         landmarkModel = LandmarkModel(name='landmarks')
         landmarkModel.prepare(ctx_id= 0, det_thresh=0.6, det_size=(640,640))
-        # bboxes = target_faces_align(landmarkModel, args.target_img_path, args.json_path, args.image_size)
     os.makedirs(args.output_dir, exist_ok=True)
     image_test_multi_face(args, landmarkModel)
 

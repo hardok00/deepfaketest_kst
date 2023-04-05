@@ -54,6 +54,7 @@ def image_test_multi_face(args, landmarkModel):
         verify_landmark.append(landmark)
     
     for idx, path in enumerate(img_list):
+        print(path)
         start_idx = path.rfind('/')
         if start_idx > 0:
             target_name = path[path.rfind('/'):]
@@ -61,6 +62,7 @@ def image_test_multi_face(args, landmarkModel):
             target_name = args.target_img_path
 
         origin_att_img = cv2.imread(path)
+        h,w,_ = origin_att_img.shape
         bboxes = []
 
         for image_id in coco['annotations']:
@@ -78,11 +80,13 @@ def image_test_multi_face(args, landmarkModel):
                     del j[4]
                     # print(j)
                     bboxes.append([image_box[0]+j[0],image_box[1]+j[1],image_box[0]+j[2],image_box[1]+j[3]])
-                # print(bboxes)
+                print(bboxes)
                 # cv2.imwrite(os.path.join(args.output_dir, os.path.basename(target_name)), cropped_image)
         
         for idx, bbox in enumerate(bboxes):
             # print(bbox)
+            if bbox[0] < 0:
+                bbox[0] = 0
             if bbox[1] < 0:
                 bbox[1] = 0
             p1, p2 = (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3]))

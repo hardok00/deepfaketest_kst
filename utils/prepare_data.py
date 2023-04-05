@@ -34,7 +34,7 @@ class LandmarkModel():
         self.det_size = det_size
         for taskname, model in self.models.items():
             if taskname=='detection':
-                model.prepare(ctx_id, input_size=det_size)
+                model.prepare(ctx_id, input_size=det_size, det_thresh=det_thresh)
             else:
                 model.prepare(ctx_id)
 

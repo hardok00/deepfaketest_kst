@@ -39,7 +39,7 @@ class LandmarkModel():
         for taskname, model in self.models.items():
             print(model)
             if taskname=='detection':
-                model.prepare(ctx_id, input_size=det_size)
+                model.prepare(ctx_id, input_size=det_size, det_thresh=det_thresh)
             else:
                 model.prepare(ctx_id)
 
@@ -69,7 +69,7 @@ class LandmarkModel():
         if kpss is not None:
             kps = kpss[best_index]
         return kps
-
+    
     def gets(self, target_img, verify_landmark, verify_list, max_num=0):
         bboxes1, kpss1 = self.det_model.detect(target_img, max_num=max_num, metric='default')
          

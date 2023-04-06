@@ -122,7 +122,6 @@ def target_faces_align(landmarkModel, target_image_path, verify_landmark, verify
     else:
         img_list = [os.path.join(target_image_path, x) for x in os.listdir(target_image_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
     for path in img_list:
-        # verify_img = cv2.imread(verify_image_path)
         target_img = cv2.imread(path)
         name = path.split('/')[-1].replace('.png', '').replace('.jpg', '').replace('.jpeg', '')
 
@@ -130,8 +129,6 @@ def target_faces_align(landmarkModel, target_image_path, verify_landmark, verify
         os.makedirs(target_path, exist_ok=True)
         
         bboxes, landmarks = landmarkModel.gets(target_img, verify_landmark, verify_list)
-        
-        # print(landmarks)
         
         for target_count, landmark in enumerate(landmarks):
             if landmark is not None:
@@ -144,11 +141,6 @@ def target_faces_align(landmarkModel, target_image_path, verify_landmark, verify
             else:
                 print("*************face no detect***************")
                 
-
-        target_list = [os.path.join(target_path, x) for x in os.listdir(target_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
-        
-        print(target_list) 
-
     return bboxes, aligned_imgs
 
 
@@ -173,4 +165,3 @@ if __name__ == '__main__':
         bboxes, target_aligned_images = target_faces_align(landmarkModel, args.target_img_path, verify_landmark,verify_list, args.image_size)
     os.makedirs(args.output_dir, exist_ok=True)
     image_test_multi_face(args, source_aligned_images, target_aligned_images, bboxes)
-         

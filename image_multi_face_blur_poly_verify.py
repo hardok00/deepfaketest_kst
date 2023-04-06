@@ -7,7 +7,7 @@ import json
 from utils.face_analysis import FaceAnalysis
 from utils.prepare_data_json_verify import LandmarkModel
 
-def face_blur(args, landmarkModel, landmark_2d):
+def face_blur(args, landmark_2d):
     # if os.path.isfile(args.json_path):
     #     with open(args.json_path, 'rt', encoding='UTF-8') as annotations:
     #         coco = json.load(annotations)
@@ -80,8 +80,7 @@ if __name__ == '__main__':
         landmark_2d = FaceAnalysis(name='landmarks')
         # , allowed_modules=['detection', 'landmark_2d_106']
         landmark_2d.prepare(ctx_id=0, det_thresh = 0.6, det_size=(640, 640))
-        landmarkModel = LandmarkModel(name='landmarks')
-        landmarkModel.prepare(ctx_id= 0, det_thresh=0.6, det_size=(640,640))
     os.makedirs(args.output_dir, exist_ok=True)
-    face_blur(args, landmarkModel, landmark_2d)
+    face_blur(args, landmark_2d)
+    
     

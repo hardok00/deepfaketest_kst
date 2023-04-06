@@ -1,3 +1,6 @@
+# insightface 버전 업데이트 후 
+# bboxes, kpss = self.det_model.detect(img, threshold=self.det_thresh, max_num=max_num, metric='default') threshold=self.det_thresh 제거
+
 import os
 import cv2
 import numpy as np

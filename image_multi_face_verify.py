@@ -173,9 +173,4 @@ if __name__ == '__main__':
         bboxes, target_aligned_images = target_faces_align(landmarkModel, args.target_img_path, verify_landmark,verify_list, args.image_size)
     os.makedirs(args.output_dir, exist_ok=True)
     image_test_multi_face(args, source_aligned_images, target_aligned_images, bboxes)
-
-
-
-
-
-
+         

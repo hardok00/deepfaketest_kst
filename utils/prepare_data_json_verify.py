@@ -47,8 +47,8 @@ class LandmarkModel():
     bboxes : 이미지에서 검출한 얼굴 영역의 위치와 크기를 나타내는 변수
     열 0 : 얼굴 영역의 x 좌표
     열 1 : 얼굴 영역의 y 좌표
-    열 2 : 얼굴 영역의 너비 = 열 2 - 열 0
-    열 3 : 얼굴 영역의 높이 = 열 3 - 열 1 
+    열 2 : 얼굴 영역의 너비
+    열 3 : 얼굴 영역의 높이
     열 4 : 얼굴 영역의 신뢰도 점수 (detection score)
     
     kpss : 검출된 얼굴 영역의 특징점 위치를 나타내는 2차원 좌표 배열
@@ -73,7 +73,7 @@ class LandmarkModel():
     def gets(self, target_img, verify_landmark, verify_list, max_num=0):
         bboxes1, kpss1 = self.det_model.detect(target_img, max_num=max_num, metric='default')
          
-        kps_img = kpss1
+        kps_img = []
         kps_bbox = []
         nt_img = []
         
@@ -82,7 +82,10 @@ class LandmarkModel():
             print(kpss2)
             print(kpss1.shape[0])
             
+            
             for j in range(kpss1.shape[0]):
+                if j in nt_img:
+                    continue
                 kps1 = face(kpss1[j])
                 print(f"kps1 : {kps1.kps}")
                 feat1 = self.rec_model.get(target_img, kps1)
@@ -94,19 +97,15 @@ class LandmarkModel():
 
                 print(f"일치 확률 : {sim}")
                 
-                # if sim < 0.4:
-                #     kps_img.append(kpss1[j])
-                #     kps_bbox.append(bboxes1[j])
+                if sim < 0.4:
+                    kps_img.append(kpss1[j])
+                    kps_bbox.append(bboxes1[j])
                 
-            if sim >= 0.4:
+                if sim >= 0.4:
                         nt_img.append(j)
-                        break
-                    
-            if nt_img:
-                nt_img.sort(reverse=True)
-                for delete in nt_img:
-                    del kps_img[delete]
-                
+                        kps_img = []
+                        kps_bbox = []
+        
         # 특정 행을 삭제하고 싶을 때
         # bboxes = np.delete(bboxes, 1, axis= 0)
         # kpss = np.delete(kpss, 1, axis= 0)

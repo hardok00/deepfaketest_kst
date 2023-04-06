@@ -89,15 +89,3 @@ if __name__ == '__main__':
         bboxes = target_faces_align(landmarkModel, args.target_img_path, args.json_path, args.image_size)
     os.makedirs(args.output_dir, exist_ok=True)
     image_test_multi_face(args, bboxes)
-
-
-
-
-
-
-
-
-
-
-
-

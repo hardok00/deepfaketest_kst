@@ -7,7 +7,7 @@ import json
 from utils.face_analysis import FaceAnalysis
 from utils.prepare_data_json_verify import LandmarkModel
 
-def face_blur(args, landmarkModel, landmark_2d):
+def face_blur(args, landmark_2d):
     if os.path.isfile(args.json_path):
         with open(args.json_path, 'rt', encoding='UTF-8') as annotations:
             coco = json.load(annotations)
@@ -49,17 +49,29 @@ def face_blur(args, landmarkModel, landmark_2d):
         for image_id in coco['annotations']:
             if image_id["image_id"] == idx + 1 and image_id["category_id"] == 2:
                 image_box = image_id["bbox"]
+                image_box_true = image_box
                 image_box = list(map(int, image_box))
-                # print(image_box)
+                
                 cropped_image = target_img[image_box[1]:image_box[1]+image_box[3], image_box[0]:image_box[0]+image_box[2]]
             
-                bboxes2, faces = landmark_2d.gets(cropped_image, verify_landmark, verify_list)
+                bboxes2, faces = landmark_2d.j_gets(cropped_image, verify_landmark, verify_list)
                 #assert len(faces)==6
                 tim = target_img.copy()
                 height, width, _ = target_img.shape
                 # color = (200, 160, 75)
                 for face in faces:
                     lmk = face.landmark_2d_106
+                    for row in lmk:
+                        row[0] += image_box[0]
+                        if row[0] < 0:
+                            row[0] = 0
+                        elif row[0] > width:
+                            row[0] = width
+                        row[1] += image_box[1]
+                        if row[1] < 0:
+                            row[1] = 0
+                        elif row[1] > height:
+                            row[1] = height
                     lmk = np.round(lmk).astype(np.int64)
                     convexhull = cv2.convexHull(lmk)
                     

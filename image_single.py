@@ -101,7 +101,3 @@ if __name__ == '__main__':
         face_align(landmarkModel, args.target_img_path, args.merge_result, args.image_size)
     os.makedirs(args.output_dir, exist_ok=True)
     image_test(args)
-
-
-
-

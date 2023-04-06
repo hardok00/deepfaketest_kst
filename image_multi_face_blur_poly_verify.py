@@ -85,4 +85,3 @@ if __name__ == '__main__':
     os.makedirs(args.output_dir, exist_ok=True)
     face_blur(args, landmarkModel, landmark_2d)
     
-    

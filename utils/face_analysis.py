@@ -4,6 +4,7 @@ from __future__ import division
 import os
 import glob
 import os.path as osp
+import cv2
 
 import numpy as np
 import onnxruntime
@@ -29,7 +30,7 @@ class FaceAnalysis:
                 print('model not recognized:', onnx_file)
             elif allowed_modules is not None and model.taskname not in allowed_modules:
                 print('model ignore:', onnx_file, model.taskname)
-                del model
+                # del model
             elif model.taskname not in self.models and (allowed_modules is None or model.taskname in allowed_modules):
                 print('find model:', onnx_file, model.taskname, model.input_shape, model.input_mean, model.input_std)
                 self.models[model.taskname] = model
@@ -38,6 +39,7 @@ class FaceAnalysis:
                 del model
         assert 'detection' in self.models
         self.det_model = self.models['detection']
+        self.rec_model = self.models['recognition']
 
 
     def prepare(self, ctx_id, det_thresh=0.5, det_size=(640, 640)):
@@ -70,35 +72,49 @@ class FaceAnalysis:
                     continue
                 model.get(img, face)
             ret.append(face)
-        return ret
+        return bboxes, ret
 
-    def draw_on(self, img, faces):
-        import cv2
-        dimg = img.copy()
-        for i in range(len(faces)):
-            face = faces[i]
-            box = face.bbox.astype(int)
-            color = (0, 0, 255)
-            cv2.rectangle(dimg, (box[0], box[1]), (box[2], box[3]), color, 2)
-            if face.kps is not None:
-                kps = face.kps.astype(int)
-                #print(landmark.shape)
-                for l in range(kps.shape[0]):
-                    color = (0, 0, 255)
-                    if l == 0 or l == 3:
-                        color = (0, 255, 0)
-                    cv2.circle(dimg, (kps[l][0], kps[l][1]), 1, color,
-                               2)
-            if face.gender is not None and face.age is not None:
-                cv2.putText(dimg,'%s,%d'%(face.sex,face.age), (box[0]-1, box[1]-4),cv2.FONT_HERSHEY_COMPLEX,0.7,(0,255,0),1)
+    def gets(self, target_img, verify_landmark, verify_list, max_num=0):
+        # bboxes1, kpss1 = self.det_model.detect(target_img, max_num=max_num, metric='default')
+        
+        bboxes1, kpss1 = self.get(target_img)
+        
+        kps_img = kpss1
+        kps_bbox = []
+        nt_img = []
+        
+        for idx, kpss2 in enumerate(verify_landmark):
+            verify_img = cv2.imread(verify_list[idx])
+            print(kpss2[0]['kps'])
+            # print(kpss2[idx]['kps'])
+            
+            for j in range(bboxes1.shape[0]):
+                kps1 = face(kpss1[j]['kps'])
+                print(f"kps1 : {kps1.kps}")
+                feat1 = self.rec_model.get(target_img, kps1)
 
-            #for key, value in face.items():
-            #    if key.startswith('landmark_3d'):
-            #        print(key, value.shape)
-            #        print(value[0:10,:])
-            #        lmk = np.round(value).astype(int)
-            #        for l in range(lmk.shape[0]):
-            #            color = (255, 0, 0)
-            #            cv2.circle(dimg, (lmk[l][0], lmk[l][1]), 1, color,
-            #                       2)
-        return dimg
+                kps2 = face(kpss2[0]['kps'])
+                feat2 = self.rec_model.get(verify_img, kps2)
+                
+                sim = self.rec_model.compute_sim(feat1, feat2)
+
+                print(f"일치 확률 : {sim}")
+                
+                # if sim < 0.4:
+                #     kps_img.append(kpss1[j])
+                #     kps_bbox.append(bboxes1[j])
+                    
+                if sim >= 0.4:
+                    nt_img.append(j)
+                    break
+                
+        if nt_img:
+            nt_img.sort(reverse=True)
+            for delete in nt_img:
+                del kps_img[delete]
+                
+        return kps_bbox, kps_img
+
+class face():
+    def __init__(self, kps):
+        self.kps = kps

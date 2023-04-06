@@ -62,14 +62,13 @@ def image_test_multi_face(args, landmarkModel):
             target_name = args.target_img_path
 
         origin_att_img = cv2.imread(path)
-        h,w,_ = origin_att_img.shape
+        # h,w,_ = origin_att_img.shape
         bboxes = []
 
         for image_id in coco['annotations']:
             if image_id["image_id"] == idx + 1 and image_id["category_id"] == 2:
                 image_box = image_id["bbox"]
                 image_box = list(map(int, image_box))
-                # print(image_box)
                 cropped_image = origin_att_img[image_box[1]:image_box[1]+image_box[3], image_box[0]:image_box[0]+image_box[2]]
                 
                 bbox, landmarks = landmarkModel.gets(cropped_image,verify_landmark,verify_list)
@@ -114,4 +113,14 @@ if __name__ == '__main__':
     os.makedirs(args.output_dir, exist_ok=True)
     image_test_multi_face(args, landmarkModel)
 
-          
+
+
+
+
+
+
+
+
+
+
+

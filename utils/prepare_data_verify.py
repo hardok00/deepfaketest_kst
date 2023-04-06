@@ -47,8 +47,8 @@ class LandmarkModel():
     bboxes : 이미지에서 검출한 얼굴 영역의 위치와 크기를 나타내는 변수
     열 0 : 얼굴 영역의 x 좌표
     열 1 : 얼굴 영역의 y 좌표
-    열 2 : 얼굴 영역의 너비
-    열 3 : 얼굴 영역의 높이
+    열 2 : 얼굴 영역의 너비 = 열 2 - 열 0
+    열 3 : 얼굴 영역의 높이 = 열 3 - 열 1
     열 4 : 얼굴 영역의 신뢰도 점수 (detection score)
     
     kpss : 검출된 얼굴 영역의 특징점 위치를 나타내는 2차원 좌표 배열
@@ -78,8 +78,8 @@ class LandmarkModel():
         
         for idx, kpss2 in enumerate(verify_landmark):
             verify_img = cv2.imread(verify_list[idx])
-            print(kpss2)
-            print(kpss1.shape[0])
+            # print(kpss2)
+            # print(kpss1.shape[0])
             
             for j in range(kpss1.shape[0]):
                 kps1 = face(kpss1[j])
@@ -91,7 +91,7 @@ class LandmarkModel():
                 
                 sim = self.rec_model.compute_sim(feat1, feat2)
 
-                print(sim)
+                print(f"일치 확률 : {sim}")
                 
                 if sim > 0.4:
                     kps_img.append(kpss1[j])

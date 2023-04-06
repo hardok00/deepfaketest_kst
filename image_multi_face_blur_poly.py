@@ -52,3 +52,4 @@ if __name__ == '__main__':
         landmark_2d.prepare(ctx_id=0, det_thresh = 0.6, det_size=(640, 640))
     os.makedirs(args.output_dir, exist_ok=True)
     face_blur(args, landmark_2d)
+    

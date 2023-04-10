@@ -70,11 +70,11 @@ def image_test_multi_face(args, source_aligned_images, target_aligned_images, bb
         mask = np.transpose(mask[0].numpy(), (1, 2, 0))
         origin_att_img = dealign(res, origin_att_img, back_matrix, mask)
         
-    for bbox in bboxes:
-        if bbox[1] < 0:
-            bbox[1] = 0
-        print(bbox)
-        draw_text(origin_att_img, str(bbox[4]), pos=(int(bbox[0]), int(bbox[1])), font_scale=1, font_thickness= 1, text_color=(255, 255, 255), text_color_bg=(0, 0, 255))
+#     for bbox in bboxes:
+#         if bbox[1] < 0:
+#             bbox[1] = 0
+#         print(bbox)
+#         draw_text(origin_att_img, str(bbox[4]), pos=(int(bbox[0]), int(bbox[1])), font_scale=1, font_thickness= 1, text_color=(255, 255, 255), text_color_bg=(0, 0, 255))
     
     cv2.imwrite(os.path.join(args.output_dir, os.path.basename(target_name.format(idx))), origin_att_img)
 

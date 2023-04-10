@@ -80,7 +80,7 @@ class FaceAnalysis:
         bboxes1, kpss1 = self.get(target_img)
         
         kps_img = kpss1
-        kps_bbox = []
+        kps_bbox = bboxes1
         nt_img = []
         
         for idx, kpss2 in enumerate(verify_landmark):
@@ -112,6 +112,46 @@ class FaceAnalysis:
             nt_img.sort(reverse=True)
             for delete in nt_img:
                 del kps_img[delete]
+                
+        return kps_bbox, kps_img
+    
+    
+    def j_gets(self, target_img, verify_landmark, verify_list, max_num=0):
+        # bboxes1, kpss1 = self.det_model.detect(target_img, max_num=max_num, metric='default')
+        bboxes1, kpss1 = self.get(target_img)
+        
+        kps_img = []
+        kps_bbox = []
+        nt_img = []
+        
+        for idx, kpss2 in enumerate(verify_landmark):
+            verify_img = cv2.imread(verify_list[idx])
+            print(kpss2[0]['kps'])
+            # print(kpss2[idx]['kps'])
+            
+            for j in range(bboxes1.shape[0]):
+                if j in nt_img:
+                    continue
+                kps1 = face(kpss1[j]['kps'])
+                print(f"kps1 : {kps1.kps}")
+                feat1 = self.rec_model.get(target_img, kps1)
+
+                kps2 = face(kpss2[0]['kps'])
+                feat2 = self.rec_model.get(verify_img, kps2)
+                
+                sim = self.rec_model.compute_sim(feat1, feat2)
+
+                print(f"일치 확률 : {sim}")
+                
+                if sim < 0.4:
+                    kps_img.append(kpss1[j])
+                    kps_bbox.append(bboxes1[j])
+                    
+                if sim >= 0.4:
+                    nt_img.append(j)
+                    kps_img = []
+                    kps_bbox = []
+            
                 
         return kps_bbox, kps_img
 

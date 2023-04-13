@@ -55,10 +55,11 @@ class LandmarkModel():
     """
     # max_num 0 = 모든 객체에 대해 탐지
     def get(self, img, max_num=0):
-        # bboxes, kpss = self.det_model.detect(img, threshold=self.det_thresh, max_num=max_num, metric='default')
-        bboxes, kpss = self.det_model.detect(img, max_num=max_num, metric='default')
+        bboxes, kpss = self.det_model.detect(img, 
+                                             max_num=max_num, 
+                                             metric='default')
         if bboxes.shape[0] == 0:
-            return None
+            return None, None
         
         det_score = bboxes[..., 4]
 
@@ -68,18 +69,21 @@ class LandmarkModel():
         kps = None
         if kpss is not None:
             kps = kpss[best_index]
-        return kps
+        return bboxes, kps
     
     def gets(self, target_img, verify_landmark, verify_list, max_num=0):
-        bboxes1, kpss1 = self.det_model.detect(target_img, max_num=max_num, metric='default')
+        bboxes1, kpss1 = self.det_model.detect(target_img, 
+                                               max_num=max_num, 
+                                               metric='default')
+        
+        if bboxes1.shape[0] == 0:
+            return None, None
          
         kps_img = []
         kps_bbox = []
         
         for idx, kpss2 in enumerate(verify_landmark):
             verify_img = cv2.imread(verify_list[idx])
-            # print(kpss2)
-            # print(kpss1.shape[0])
             
             for j in range(kpss1.shape[0]):
                 kps1 = face(kpss1[j])

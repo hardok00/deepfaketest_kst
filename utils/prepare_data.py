@@ -44,9 +44,11 @@ class LandmarkModel():
 
     def get(self, img, max_num=0):
         # bboxes, kpss = self.det_model.detect(img, threshold=self.det_thresh, max_num=max_num, metric='default')
-        bboxes, kpss = self.det_model.detect(img, max_num=max_num, metric='default')
+        bboxes, kpss = self.det_model.detect(img, 
+                                             max_num=max_num, 
+                                             metric='default')
         if bboxes.shape[0] == 0:
-            return None
+            return None, None
         det_score = bboxes[..., 4]
 
         # select the face with the hightest detection score
@@ -55,12 +57,15 @@ class LandmarkModel():
         kps = None
         if kpss is not None:
             kps = kpss[best_index]
-        return kps
+        return bboxes, kps
 
     def gets(self, img, max_num=0):
         # bboxes, kpss = self.det_model.detect(img, threshold=self.det_thresh, max_num=max_num, metric='default')
-        bboxes, kpss = self.det_model.detect(img, max_num=max_num, metric='default')
-        
+        bboxes, kpss = self.det_model.detect(img, 
+                                             max_num=max_num, 
+                                             metric='default')
+        if bboxes.shape[0] == 0:
+            return None, None
         # 특정 행을 삭제하고 싶을 때
         # bboxes = np.delete(bboxes, 1, axis= 0)
         # kpss = np.delete(kpss, 1, axis= 0)

@@ -30,7 +30,7 @@ class LandmarkModel():
         self.det_model = self.models['detection']
         self.rec_model = self.models['recognition']
 
-    def prepare(self, ctx_id, det_thresh=0.5, det_size=(640, 640), mode ='None'):
+    def prepare(self, ctx_id, det_thresh=0.5, det_size=(640, 640), mode='None'):
         self.det_thresh = det_thresh
         self.mode = mode
         assert det_size is not None
@@ -39,7 +39,9 @@ class LandmarkModel():
         for taskname, model in self.models.items():
             print(model)
             if taskname=='detection':
-                model.prepare(ctx_id, input_size=det_size , det_thresh=det_thresh)
+                model.prepare(ctx_id, 
+                              input_size=det_size, 
+                              det_thresh=det_thresh)
             else:
                 model.prepare(ctx_id)
 
@@ -55,10 +57,11 @@ class LandmarkModel():
     """
     # max_num 0 = 모든 객체에 대해 탐지
     def get(self, img, max_num=0):
-        # bboxes, kpss = self.det_model.detect(img, threshold=self.det_thresh, max_num=max_num, metric='default')
-        bboxes, kpss = self.det_model.detect(img, max_num=max_num, metric='default')
+        bboxes, kpss = self.det_model.detect(img, 
+                                             max_num=max_num, 
+                                             metric='default')
         if bboxes.shape[0] == 0:
-            return None
+            return None, None
         
         det_score = bboxes[..., 4]
 
@@ -68,26 +71,27 @@ class LandmarkModel():
         kps = None
         if kpss is not None:
             kps = kpss[best_index]
-        return kps
+        return bboxes, kps
     
     def gets(self, target_img, verify_landmark, verify_list, max_num=0):
-        bboxes1, kpss1 = self.det_model.detect(target_img, max_num=max_num, metric='default')
-         
+        bboxes1, kpss1 = self.det_model.detect(target_img, 
+                                               max_num=max_num, 
+                                               metric='default')
+        if bboxes1.shape[0] == 0:
+            return None, None
+        
         kps_img = []
         kps_bbox = []
         nt_img = []
         
         for idx, kpss2 in enumerate(verify_landmark):
             verify_img = cv2.imread(verify_list[idx])
-            print(kpss2)
-            print(kpss1.shape[0])
-            
-            
+
             for j in range(kpss1.shape[0]):
                 if j in nt_img:
                     continue
                 kps1 = face(kpss1[j])
-                print(f"kps1 : {kps1.kps}")
+                # print(f"kps1 : {kps1.kps}")
                 feat1 = self.rec_model.get(target_img, kps1)
 
                 kps2 = face(kpss2)
@@ -95,7 +99,7 @@ class LandmarkModel():
                 
                 sim = self.rec_model.compute_sim(feat1, feat2)
 
-                print(f"일치 확률 : {sim}")
+                # print(f"일치 확률 : {sim}")
                 
                 if sim < 0.4:
                     kps_img.append(kpss1[j])

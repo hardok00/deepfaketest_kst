@@ -85,12 +85,12 @@ class FaceAnalysis:
         
         for idx, kpss2 in enumerate(verify_landmark):
             verify_img = cv2.imread(verify_list[idx])
-            print(kpss2[0]['kps'])
+#             print(kpss2[0]['kps'])
             # print(kpss2[idx]['kps'])
             
             for j in range(bboxes1.shape[0]):
                 kps1 = face(kpss1[j]['kps'])
-                print(f"kps1 : {kps1.kps}")
+#                 print(f"kps1 : {kps1.kps}")
                 feat1 = self.rec_model.get(target_img, kps1)
 
                 kps2 = face(kpss2[0]['kps'])
@@ -98,7 +98,7 @@ class FaceAnalysis:
                 
                 sim = self.rec_model.compute_sim(feat1, feat2)
 
-                print(f"일치 확률 : {sim}")
+#                 print(f"일치 확률 : {sim}")
                 
                 # if sim < 0.4:
                 #     kps_img.append(kpss1[j])
@@ -126,14 +126,14 @@ class FaceAnalysis:
         
         for idx, kpss2 in enumerate(verify_landmark):
             verify_img = cv2.imread(verify_list[idx])
-            print(kpss2[0]['kps'])
+#             print(kpss2[0]['kps'])
             # print(kpss2[idx]['kps'])
             
             for j in range(bboxes1.shape[0]):
                 if j in nt_img:
                     continue
                 kps1 = face(kpss1[j]['kps'])
-                print(f"kps1 : {kps1.kps}")
+#                 print(f"kps1 : {kps1.kps}")
                 feat1 = self.rec_model.get(target_img, kps1)
 
                 kps2 = face(kpss2[0]['kps'])
@@ -141,7 +141,7 @@ class FaceAnalysis:
                 
                 sim = self.rec_model.compute_sim(feat1, feat2)
 
-                print(f"일치 확률 : {sim}")
+#                 print(f"일치 확률 : {sim}")
                 
                 if sim < 0.4:
                     kps_img.append(kpss1[j])

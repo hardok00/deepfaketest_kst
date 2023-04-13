@@ -42,8 +42,7 @@ def video_test(args):
 
     landmark = landmarkModel.get(id_img)
     if landmark is None:
-        print('**** No Face Detect Error ****')
-        exit()
+        print('****Source Face No Detect****')
     aligned_id_img, _ = align_img(id_img, landmark)
 
     id_emb, id_feature = get_id_emb(id_net, aligned_id_img)
@@ -58,7 +57,7 @@ def video_test(args):
     all_f = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     for i in tqdm(range(int(all_f))):
         ret, frame = cap.read()
-        landmark = landmarkModel.get(frame)
+        bboxes, landmark = landmarkModel.get(frame)
         if landmark is not None:
             att_img, back_matrix = align_img(frame, landmark)
             att_img = cv2paddle(att_img)
@@ -68,7 +67,7 @@ def video_test(args):
             res = dealign(res, frame, back_matrix, mask)
             frame = res
         else:
-            print('**** No Face Detect Error ****')
+            print('****Target Face No Detect****')
         videoWriter.write(frame)
     cap.release()
     videoWriter.release()

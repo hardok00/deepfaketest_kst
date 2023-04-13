@@ -5,7 +5,6 @@ import os
 import json
 
 from utils.face_analysis import FaceAnalysis
-from utils.prepare_data_json_verify import LandmarkModel
 
 def face_blur(args, landmark_2d):
     if os.path.isfile(args.json_path):
@@ -33,8 +32,10 @@ def face_blur(args, landmark_2d):
     for path in verify_list:
         verify_img = cv2.imread(path)
         bboxes ,landmark = landmark_2d.get(verify_img)
-        
-        verify_landmark.append(landmark)
+        if bboxes is None:
+            print(f"***************{path} Face No Detect***************")
+        else:
+            verify_landmark.append(landmark)
         
     for idx, path in enumerate(img_list):
         print(path)
@@ -49,47 +50,43 @@ def face_blur(args, landmark_2d):
         for image_id in coco['annotations']:
             if image_id["image_id"] == idx + 1 and image_id["category_id"] == 2:
                 image_box = image_id["bbox"]
-                image_box_true = image_box
                 image_box = list(map(int, image_box))
                 
                 cropped_image = target_img[image_box[1]:image_box[1]+image_box[3], image_box[0]:image_box[0]+image_box[2]]
             
                 bboxes2, faces = landmark_2d.j_gets(cropped_image, verify_landmark, verify_list)
-                #assert len(faces)==6
-                tim = target_img.copy()
-                height, width, _ = target_img.shape
-                # color = (200, 160, 75)
-                for face in faces:
-                    lmk = face.landmark_2d_106
-                    for row in lmk:
-                        row[0] += image_box[0]
-                        if row[0] < 0:
-                            row[0] = 0
-                        elif row[0] > width:
-                            row[0] = width
-                        row[1] += image_box[1]
-                        if row[1] < 0:
-                            row[1] = 0
-                        elif row[1] > height:
-                            row[1] = height
-                    lmk = np.round(lmk).astype(np.int64)
-                    convexhull = cv2.convexHull(lmk)
+                if bboxes2 is None:
+                    print("***************Cropped Face No Detect***************")
+                else:
+                    tim = target_img.copy()
+                    height, width, _ = target_img.shape
+                    for face in faces:
+                        lmk = face.landmark_2d_106
+                        for row in lmk:
+                            row[0] += image_box[0]
+                            if row[0] < 0:
+                                row[0] = 0
+                            elif row[0] > width:
+                                row[0] = width
+                            row[1] += image_box[1]
+                            if row[1] < 0:
+                                row[1] = 0
+                            elif row[1] > height:
+                                row[1] = height
+                        lmk = np.round(lmk).astype(np.int64)
+                        convexhull = cv2.convexHull(lmk)
+                        
+                        mask = np.zeros((height, width), np.uint8)
+                        cv2.fillConvexPoly(mask, convexhull, 255)
+                        
+                        tim = cv2.blur(tim, (27,27))
+                        face_extracted = cv2.bitwise_and(tim, tim, mask=mask)
+                        
+                        background_mask = cv2.bitwise_not(mask)
+                        background = cv2.bitwise_and(target_img, target_img, mask=background_mask)
+                        
+                        target_img = cv2.add(background, face_extracted)
                     
-                    mask = np.zeros((height, width), np.uint8)
-                    cv2.fillConvexPoly(mask, convexhull, 255)
-                    
-                    tim = cv2.blur(tim, (27,27))
-                    face_extracted = cv2.bitwise_and(tim, tim, mask=mask)
-                    
-                    background_mask = cv2.bitwise_not(mask)
-                    background = cv2.bitwise_and(target_img, target_img, mask=background_mask)
-                    
-                    target_img = cv2.add(background, face_extracted)
-                    
-                    # lmk = np.round(lmk).astype(np.int64)
-                    # for i in range(lmk.shape[0]):
-                    #     p = tuple(lmk[i])
-                    #     # cv2.circle(tim, p, 1, color, 1, cv2.LINE_AA)
         cv2.imwrite(os.path.join(args.output_dir, os.path.basename(target_name)), target_img)
     
 if __name__ == '__main__':
@@ -106,7 +103,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.need_align:
         landmark_2d = FaceAnalysis(name='landmarks')
-        # , allowed_modules=['detection', 'landmark_2d_106']
         landmark_2d.prepare(ctx_id=0, det_thresh = 0.6, det_size=(640, 640))
     os.makedirs(args.output_dir, exist_ok=True)
     face_blur(args, landmark_2d)

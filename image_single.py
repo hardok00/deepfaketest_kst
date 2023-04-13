@@ -71,7 +71,7 @@ def face_align(landmarkModel, image_path, merge_result=False, image_size=224):
         img_list = [os.path.join(image_path, x) for x in os.listdir(image_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
     for path in img_list:
         img = cv2.imread(path)
-        landmark = landmarkModel.get(img)
+        bboxes, landmark = landmarkModel.get(img)
         if landmark is not None:
             base_path = path.replace('.png', '').replace('.jpg', '').replace('.jpeg', '')
             aligned_img, back_matrix = align_img(img, landmark, image_size)
@@ -101,3 +101,7 @@ if __name__ == '__main__':
         face_align(landmarkModel, args.target_img_path, args.merge_result, args.image_size)
     os.makedirs(args.output_dir, exist_ok=True)
     image_test(args)
+
+
+
+

@@ -57,25 +57,20 @@ def video_test_multi_face(args):
         ret, frame = cap.read()
         
         # 타겟 이미지 얼굴 디텍트
-        bboxes = target_face_align(landmarkModel, frame, args.image_size)
-
-        for bbox in bboxes:
-            if bbox[1] < 0:
-                bbox[1] = 0
-            # print(bbox)
-            p1, p2 = (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3]))
-            frame[p1[1]: p2[1], p1[0]:p2[0], :] = cv2.GaussianBlur(frame[p1[1]: p2[1], p1[0]:p2[0], :], (0,0), 20 )
-        videoWriter.write(frame)
+        bboxes, landmarks = landmarkModel.gets(frame)
+        if bboxes is None:
+            print("***************Target Face No Detect***************")
+        else:
+            for bbox in bboxes:
+                if bbox[1] < 0:
+                    bbox[1] = 0
+                # print(bbox)
+                p1, p2 = (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3]))
+                frame[p1[1]: p2[1], p1[0]:p2[0], :] = cv2.GaussianBlur(frame[p1[1]: p2[1], p1[0]:p2[0], :], (0,0), 20 )
+            videoWriter.write(frame)
     cap.release()
     videoWriter.release()
     
-# 타겟 이미지 수평 맞춤
-def target_face_align(landmarkModel, image, image_size=224):
-    
-    bboxes, landmarks = landmarkModel.gets(image)
-    
-    return bboxes
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="MobileFaceSwap Test")

@@ -23,10 +23,18 @@ def draw_text(img, text,
           ):
 
     x, y = pos
-    text_size, _ = cv2.getTextSize(text, font, font_scale, font_thickness)
+    text_size, _ = cv2.getTextSize(text, font, 
+                                   font_scale, 
+                                   font_thickness)
     text_w, text_h = text_size
-    cv2.rectangle(img, pos, (x + text_w, y + text_h), text_color_bg, -1)
-    cv2.putText(img, text, (x, y + text_h + font_scale - 1), font, font_scale, text_color, font_thickness)
+    cv2.rectangle(img, pos, 
+                  (x + text_w, y + text_h), 
+                  text_color_bg, -1)
+    
+    cv2.putText(img, text, 
+                (x, y + text_h + font_scale - 1), 
+                font, font_scale, 
+                text_color, font_thickness)
 
     return text_size
 
@@ -67,7 +75,6 @@ def target_faces_align(landmarkModel, target_image_path,json_path, image_size=22
         target_img = cv2.imread(path)
         
         bboxes, landmarks = landmarkModel.gets(target_img)
-            
     return bboxes
 
 
@@ -88,4 +95,22 @@ if __name__ == '__main__':
         landmarkModel.prepare(ctx_id= 0, det_thresh=0.6, det_size=(640,640))
         bboxes = target_faces_align(landmarkModel, args.target_img_path, args.json_path, args.image_size)
     os.makedirs(args.output_dir, exist_ok=True)
-    image_test_multi_face(args, bboxes)
+    if bboxes is not None:
+        image_test_multi_face(args, bboxes)
+    else:
+        print("***************Target Face No Detect***************")
+            
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+

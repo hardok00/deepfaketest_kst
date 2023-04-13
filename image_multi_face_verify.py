@@ -58,7 +58,7 @@ def image_test_multi_face(args, source_aligned_images, target_aligned_images, bb
         target_name = args.target_img_path
     origin_att_img = cv2.imread(args.target_img_path)
     
-    print(len(target_aligned_images))
+    # print(len(target_aligned_images))
 
     for idx, target_aligned_image in enumerate(target_aligned_images):
         id_emb, id_feature = get_id_emb_from_image(id_net, source_aligned_images[idx % len(source_aligned_images)][0])
@@ -91,7 +91,7 @@ def source_face_align(landmarkModel, source_image_path, verify_image_path, image
         img_list = [os.path.join(source_image_path, x) for x in os.listdir(source_image_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
     for path in img_list:
         img = cv2.imread(path)
-        landmark = landmarkModel.get(img)
+        bboxes, landmark = landmarkModel.get(img)
         if landmark is not None:
             # base_path = path.replace('.png', '').replace('.jpg', '').replace('.jpeg', '')
             aligned_img, back_matrix = align_img(img, landmark, image_size)
@@ -99,7 +99,6 @@ def source_face_align(landmarkModel, source_image_path, verify_image_path, image
 
             # cv2.imwrite(base_path + '_aligned.png', aligned_img)
             # np.save(base_path + '_back.npy', back_matrix)
-            
         else:
             print("*************source face no detect***************")
             
@@ -108,9 +107,12 @@ def source_face_align(landmarkModel, source_image_path, verify_image_path, image
     print(verify_list)
     for path in verify_list:
         verify_img = cv2.imread(path)
-        landmark = landmarkModel.get(verify_img)
+        bboxes, landmark = landmarkModel.get(verify_img)
         
-        verify_landmark.append(landmark)
+        if bboxes is None:
+            print(f"***************{path} Face No Detect***************")
+        else:
+            verify_landmark.append(landmark)
             
     return source_aligned_imgs, verify_landmark, verify_list
 
@@ -130,6 +132,9 @@ def target_faces_align(landmarkModel, target_image_path, verify_landmark, verify
         
         bboxes, landmarks = landmarkModel.gets(target_img, verify_landmark, verify_list)
         
+        if bboxes is None:
+            print(f"***************Target Face No Detect***************")
+        
         for target_count, landmark in enumerate(landmarks):
             if landmark is not None:
                 aligned_img, back_matrix = align_img(target_img, landmark, image_size)
@@ -138,8 +143,6 @@ def target_faces_align(landmarkModel, target_image_path, verify_landmark, verify
                 # 타겟 이미지 여러개 추출
                 cv2.imwrite(target_path + f'/{name}_target_{target_count}.png', aligned_img)
                 np.save(target_path + f'/{name}_target_back_{target_count}.npy', back_matrix)
-            else:
-                print("*************face no detect***************")
                 
     return bboxes, aligned_imgs
 

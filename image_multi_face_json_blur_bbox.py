@@ -35,7 +35,7 @@ def image_test_multi_face(args, landmarkModel):
         with open(args.json_path, 'rt', encoding='UTF-8') as annotations:
             coco = json.load(annotations)
     else:
-        print("********************* JSON FILE NOT DETECT *****************************")
+        print("********************* JSON FILE NO DETECT *****************************")
         return None
     
     if os.path.isfile(args.target_img_path):
@@ -49,9 +49,12 @@ def image_test_multi_face(args, landmarkModel):
     print(verify_list)
     for path in verify_list:
         verify_img = cv2.imread(path)
-        landmark = landmarkModel.get(verify_img)
+        bboxes, landmark = landmarkModel.get(verify_img)
         
-        verify_landmark.append(landmark)
+        if bboxes is None:
+            print(f"***************{path} Face No Detect***************")
+        else:
+            verify_landmark.append(landmark)
     
     for idx, path in enumerate(img_list):
         print(path)
@@ -62,25 +65,30 @@ def image_test_multi_face(args, landmarkModel):
             target_name = args.target_img_path
 
         origin_att_img = cv2.imread(path)
-        # h,w,_ = origin_att_img.shape
         bboxes = []
 
         for image_id in coco['annotations']:
             if image_id["image_id"] == idx + 1 and image_id["category_id"] == 2:
                 image_box = image_id["bbox"]
                 image_box = list(map(int, image_box))
-                cropped_image = origin_att_img[image_box[1]:image_box[1]+image_box[3], image_box[0]:image_box[0]+image_box[2]]
+                cropped_image = origin_att_img[image_box[1]:image_box[1]+image_box[3], 
+                                               image_box[0]:image_box[0]+image_box[2]]
                 
                 bbox, landmarks = landmarkModel.gets(cropped_image,verify_landmark,verify_list)
-                # print(f"crop bbox : {bbox}" )
-                
-                for j in bbox:
-                    j = list(map(int, j))
-                    del j[4]
-                    # print(j)
-                    bboxes.append([image_box[0]+j[0],image_box[1]+j[1],image_box[0]+j[2],image_box[1]+j[3]])
-                print(bboxes)
-                # cv2.imwrite(os.path.join(args.output_dir, os.path.basename(target_name)), cropped_image)
+                if bbox is None:
+                    print("***************Cropped Face No Detect***************")
+                else:
+                    # print(f"crop bbox : {bbox}" )
+                    
+                    for face_bbox in bbox:
+                        face_bbox = list(map(int, face_bbox))
+                        del face_bbox[4]
+                        bboxes.append([image_box[0]+face_bbox[0], 
+                                    image_box[1]+face_bbox[1], 
+                                    image_box[0]+face_bbox[2], 
+                                    image_box[1]+face_bbox[3]])
+                    # print(bboxes)
+                    # cv2.imwrite(os.path.join(args.output_dir, os.path.basename(target_name)), cropped_image)
         
         for idx, bbox in enumerate(bboxes):
             # print(bbox)

@@ -63,10 +63,9 @@ def video_test_multi_face(args):
     id_img = cv2.imread(args.source_img_path)
     
     # landmark가 소스 이미지에서 얼굴을 인식하지 못하였을 경우 디텍트 에러
-    landmark = landmarkModel.get(id_img)
-    if landmark is None:
+    bboxes, landmark = landmarkModel.get(id_img)
+    if bboxes is None:
         print('**** No Face Detect Error ****')
-        exit()
     
     # 디텍션 된 얼굴을 수평으로 맞춤
     source_aligned_images, verify_landmark, verify_list = source_face_align(landmarkModel, args.source_img_path, args.verify_img_path)
@@ -84,8 +83,6 @@ def video_test_multi_face(args):
         # target_aligned_images = target_face_align(landmarkModel, frame, args.image_size)
         bboxes, target_aligned_images = target_face_align(landmarkModel,i, frame, verify_landmark, verify_list, video_name, args.image_size)
         
-        if target_aligned_images == False:
-            print('**** No Face Detect Error ****') 
         for idx, target_aligned_image in enumerate(target_aligned_images):
             # ArcFace.pdparams 얼굴 인식 알고리즘) 얼굴의 특징을 뽑아냄
             id_emb, id_feature = get_id_emb_from_image(id_net, source_aligned_images[idx % len(source_aligned_images)][0])
@@ -125,19 +122,23 @@ def source_face_align(landmarkModel, source_image_path, verify_image_path, image
         img_list = [os.path.join(source_image_path, x) for x in os.listdir(source_image_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
     for path in img_list:
         img = cv2.imread(path)
-        landmarks = landmarkModel.get(img)
+        bboxes, landmarks = landmarkModel.get(img)
         if landmarks is not None:
             aligned_img, back_matrix = align_img(img, landmarks, image_size)
             source_aligned_imgs.append([aligned_img, back_matrix])
+        else:
+            print("*************source face no detect***************")
             
     verify_landmark =[]
     verify_list = [os.path.join(verify_image_path, x) for x in os.listdir(verify_image_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
     print(verify_list)
     for path in verify_list:
         verify_img = cv2.imread(path)
-        landmark = landmarkModel.get(verify_img)
-        
-        verify_landmark.append(landmark)        
+        bboxes, landmark = landmarkModel.get(verify_img)
+        if bboxes is None:
+            print(f"***************{path} Face No Detect***************")
+        else:
+            verify_landmark.append(landmark)
     
     return source_aligned_imgs, verify_landmark, verify_list
 
@@ -159,6 +160,8 @@ def target_face_align(landmarkModel,frame, target_image, verify_landmark, verify
             
             cv2.imwrite(frame_folder + f'/{video_name}_target_{target_count}.png', aligned_img)
             np.save(frame_folder + f'/{video_name}_target_back_{target_count}.npy', back_matrix)
+        else:
+            print("***************Target Face No Detect***************")
     return bboxes, aligned_imgs
 
 

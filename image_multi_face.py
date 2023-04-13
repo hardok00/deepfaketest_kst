@@ -70,11 +70,11 @@ def image_test_multi_face(args, source_aligned_images, target_aligned_images, bb
         mask = np.transpose(mask[0].numpy(), (1, 2, 0))
         origin_att_img = dealign(res, origin_att_img, back_matrix, mask)
         
-#     for bbox in bboxes:
-#         if bbox[1] < 0:
-#             bbox[1] = 0
-#         print(bbox)
-#         draw_text(origin_att_img, str(bbox[4]), pos=(int(bbox[0]), int(bbox[1])), font_scale=1, font_thickness= 1, text_color=(255, 255, 255), text_color_bg=(0, 0, 255))
+    for bbox in bboxes:
+        if bbox[1] < 0:
+            bbox[1] = 0
+        # print(bbox)
+        draw_text(origin_att_img, str(bbox[4]), pos=(int(bbox[0]), int(bbox[1])), font_scale=1, font_thickness= 1, text_color=(255, 255, 255), text_color_bg=(0, 0, 255))
     
     cv2.imwrite(os.path.join(args.output_dir, os.path.basename(target_name.format(idx))), origin_att_img)
 
@@ -87,7 +87,7 @@ def face_align(landmarkModel, image_path, image_size=224):
         img_list = [os.path.join(image_path, x) for x in os.listdir(image_path) if x.endswith('png') or x.endswith('jpg') or x.endswith('jpeg')]
     for path in img_list:
         img = cv2.imread(path)
-        landmark = landmarkModel.get(img)
+        bboxes, landmark = landmarkModel.get(img)
         if landmark is not None:
             # base_path = path.replace('.png', '').replace('.jpg', '').replace('.jpeg', '')
             aligned_img, back_matrix = align_img(img, landmark, image_size)
@@ -95,6 +95,8 @@ def face_align(landmarkModel, image_path, image_size=224):
             
             # cv2.imwrite(base_path + '_aligned.png', aligned_img)
             # np.save(base_path + '_back.npy', back_matrix)
+        else:
+            print("*************source face no detect***************")
             
     return aligned_imgs
 
@@ -113,8 +115,10 @@ def faces_align(landmarkModel, image_path, image_size=224):
         os.makedirs(target_path, exist_ok=True)
         
         bboxes, landmarks = landmarkModel.gets(img)
+        if bboxes is None:
+            print(f"***************Target Face No Detect***************")
         
-        print(landmarks)
+        # print(landmarks)
         
         for target_count, landmark in enumerate(landmarks):
             if landmark is not None:
@@ -152,4 +156,8 @@ if __name__ == '__main__':
     os.makedirs(args.output_dir, exist_ok=True)
     image_test_multi_face(args, source_aligned_images, target_aligned_images, bboxes)
 
-          
+
+
+
+
+

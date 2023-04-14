@@ -40,7 +40,7 @@ def video_test(args):
     landmarkModel.prepare(ctx_id= 0, det_thresh=0.6, det_size=(640,640))
     id_img = cv2.imread(args.source_img_path)
 
-    landmark = landmarkModel.get(id_img)
+    bboxes, landmark = landmarkModel.get(id_img)
     if landmark is None:
         print('****Source Face No Detect****')
     aligned_id_img, _ = align_img(id_img, landmark)

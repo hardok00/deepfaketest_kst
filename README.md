@@ -17,3 +17,6 @@
 4. 동영상 BBOX 다중 블러처리
 5. 동영상 POLY 다중 블러처리
 
+```
+!git clone https://github.com/hardok00/deepfaketest_kst
+```
